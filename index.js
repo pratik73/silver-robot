@@ -1,42 +1,29 @@
 const express = require("express");
-const multer = require("multer");
-const upload = multer({ dest: "uploads/" });
-
 const app = express();
+const upload = require("express-fileupload");
 
-app.post("/profile", upload.single("avatar"), function (req, res, next) {
-  // req.file is the `avatar` file
-  // req.body will hold the text fields, if there were any
-});
+app.use(upload());
+app.use(express.json()); // for parsing application/json
+app.use(express.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
 
-app.post(
-  "/photos/upload",
-  upload.array("photos", 12),
-  function (req, res, next) {
-    // req.files is array of `photos` files
-    // req.body will contain the text fields, if there were any
-  }
-);
+const port = 3000;
 
-const cpUpload = upload.fields([
-  { name: "avatar", maxCount: 1 },
-  { name: "gallery", maxCount: 8 },
-]);
-app.post("/cool-profile", cpUpload, function (req, res, next) {
-  // req.files is an object (String -> Array) where fieldname is the key, and the value is array of files
-  //
-  // e.g.
-  //  req.files['avatar'][0] -> File
-  //  req.files['gallery'] -> Array
-  //
-  // req.body will contain the text fields, if there were any
-});
-const port = process.env.PORT || 3000;
+app.put("/", (req, res) => {
+  sampleFile = req.files.temp;
+  uploadPath = `${__dirname}/${sampleFile.name}_${new Date().getTime()}.mp4`;
 
-app.get("/", (req, res) => {
-  res.send("Hello People");
+  console.log("\n\n\n###", req.files, uploadPath, "###\n\n\n");
+
+  // Use the mv() method to place the file somewhere on your server
+  sampleFile.mv(uploadPath, function (err) {
+    if (err) return res.status(500).send(err);
+
+    res.send("File uploaded!");
+  });
+
+  // res.send("Hello World!");
 });
 
 app.listen(port, () => {
-  console.log("Server is up on port " + port);
+  console.log(`Example app listening on port ${port}`);
 });
